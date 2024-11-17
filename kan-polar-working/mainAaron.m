@@ -7,7 +7,7 @@ close all;
 
 %% Load preprocessed EEG data
 % Directory containing the preprocessed data
-dataDir = 'C:\Users\aaron\OneDrive\Desktop\CS499\Researcg\Test Subject Preprocessed';  % Update with your actual data path
+dataDir = '/Users/hkonduru/Documents/Rig Das Research/eeg-kan/kan-polar-working/Test Subject Preprocessed';  % Update with your actual data path
 
 % Get lists of all .mat files for Session 1 and Session 2
 session1Files = dir(fullfile(dataDir, 'Processed_data_received_*_S1.mat'));
