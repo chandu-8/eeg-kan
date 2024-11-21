@@ -15,7 +15,8 @@ session2Files = dir(fullfile(dataDir, 'Processed_data_received_*_S2.mat'));
 
 % Initialize storage for training data (Session 1)
 x_train = [];
-y_train = [];  % Replace with actual labels if available
+lab_train_2 = transpose(lab_train)
+y_train = lab_train_2;  % Replace with actual labels if available
 
 % Load and combine all Session 1 data for training
 for i = 1:length(session1Files)
@@ -62,6 +63,9 @@ alp = 0.01;  % Adjusted learning rate for stability
 lam = 0.001;  % Adjusted regularization parameter
 Nrun = 50;  % Number of training iterations
 
+xmin = min(x_train(:));
+xmax = max(x_train(:));
+
 % Ensure ymin and ymax are scalars
 ymin = min(y_train(:));
 ymax = max(y_train(:));
@@ -69,10 +73,10 @@ ymax = max(y_train(:));
 % Debug print to confirm ymin and ymax are scalars
 disp(['ymin: ', num2str(ymin), ', ymax: ', num2str(ymax)]);
 
-m = size(x_train, 2);  % Number of input features
-n = 6;  % Number of nodes at the bottom
-q = 6;  % Number of nodes at the top
-p = 5;  % Number of bottom operators
+m = size(x_train, 1) * size(x_train, 2); % Number of input features (7 * 78) = 546
+n = 7;  % Number of nodes at the bottom
+q = 21;  % Number of nodes at the top
+p = 7;  % Number of bottom operators
 
 % Print values of n, m, and p for verification
 fprintf('n: %d, m: %d, p: %d\n', n, m, p);
@@ -83,12 +87,26 @@ tic;
 
 % Set batch size for training
 batchSize = 20;  % Adjust based on available memory and dataset size
-numBatches = ceil(size(x_train, 1) / batchSize);
+numBatches = ceil(size(x_train, 3) / batchSize);
 
 % Initialize tracking variables for RMSE
 RMSE_train = zeros(Nrun, 1);
 t_min_all_train = zeros(Nrun, p);
 t_max_all_train = zeros(Nrun, p);
+
+% Generate a random permutation of the indices
+shuffled_indices = randperm(840);
+
+% Shuffle the data (7x78x840 matrix)
+x_train_shuffled = x_train(:, :, shuffled_indices);
+
+% Shuffle the labels vector
+labels_shuffled = lab_train_2(shuffled_indices);
+
+% Now x_train_shuffled is the shuffled data, and labels_shuffled has the correctly matched labels
+
+identID = 15;  % First 670 samples for training
+verifID = 16;  % Last 140 samples for validation
 
 % Training loop with batch processing
 for run = 1:Nrun
@@ -97,15 +115,18 @@ for run = 1:Nrun
     for batchIdx = 1:numBatches
         % Get batch indices
         startIdx = (batchIdx - 1) * batchSize + 1;
-        endIdx = min(batchIdx * batchSize, size(x_train, 1));
+        endIdx = min(batchIdx * batchSize, size(x_train_shuffled, 3));
         
         % Extract mini-batch data
-        x_batch = x_train(startIdx:endIdx, :);
-        y_batch = y_train(startIdx:endIdx, :);
-        lab_batch = lab_train(startIdx:endIdx, :);
+        x_batch = x_train_shuffled(:, :, startIdx:endIdx);
+        y_batch = labels_shuffled(:, startIdx:endIdx);
+        lab_batch = labels_shuffled(:, startIdx:endIdx);
+        
+        fprintf("Dims. of input matrix: ")
+        size(x_batch)
         
         % Train on mini-batch
-        [yhat_batch, fnB, fnT, RMSE_batch, t_min_batch, t_max_batch] = solveMinGauss(x_batch, y_batch, lab_batch, 1, 1, alp, lam, 1, xmin, xmax, ymin, ymax, fnB0, fnT0);
+        [yhat_batch, fnB, fnT, RMSE_batch, t_min_batch, t_max_batch] = solveMinGauss(x_batch, y_batch, lab_batch, identID, verifID, alp, lam, 1, xmin, xmax, ymin, ymax, fnB0, fnT0);
         
         % Aggregate results (optional: store or average batch results)
         RMSE_train(run) = mean(RMSE_batch);
@@ -127,10 +148,15 @@ y_test = [];  % Replace with actual labels if available
 for i = 1:length(session2Files)
     session2File = session2Files(i).name;
     session2Data = load(fullfile(dataDir, session2File));
+
+    if i==1
+    x_test=cell2mat(struct2cell(session2Data));
+    else
+    x_test=cat(3,x_test,cell2mat(struct2cell(session2Data)));
     
     % Reshape the 3D matrix into a 2D matrix with samples as rows
-    reshapedData = reshape(session2Data.Template_1, size(session2Data.Template_1, 1), []);
-    x_test = [x_test; reshapedData];  % Concatenate data from each file
+    %reshapedData = reshape(session2Data.Template_1, size(session2Data.Template_1, 1), []);
+    %x_test = [x_test; reshapedData];  % Concatenate data from each file
 
     % Replace with actual test labels if available
     % y_test = [y_test; session2Data.labels];  % Uncomment and use if labels are provided

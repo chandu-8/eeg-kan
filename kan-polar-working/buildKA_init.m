@@ -1,6 +1,4 @@
 function [ fnB, fnT ] = buildKA_init( m, n, q, p, ymin, ymax )
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
 
 %. limits
 tmin = ymin;

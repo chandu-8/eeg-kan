@@ -1,6 +1,6 @@
 function [ yhat_all, LgradB_all, LgradT_all, t_min, t_max ] = modelKA_basisC( x, xmin, xmax, ymin, ymax, fnB, fnT )
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+
+size(x) % 7 x 78 x 15 -> 7 x 3822
 
 N = size(x,1);
 m = size(x,2);
@@ -18,7 +18,8 @@ Cpnm = kron(eye(p),ones(1,n*m));
 Mn = splineMatrix(n);
 Mq = splineMatrix(q);
 
-fnB_r = reshape(fnB,n*m,p);
+size(fnB)
+fnB_r = reshape(fnB,n*m,[]);
 fnT_r = fnT(:);
 
 %. calc. bottom
