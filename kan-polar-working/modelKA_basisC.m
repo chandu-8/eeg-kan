@@ -1,12 +1,16 @@
 function [ yhat_all, LgradB_all, LgradT_all, t_min, t_max ] = modelKA_basisC( x, xmin, xmax, ymin, ymax, fnB, fnT )
 
-size(x) % 7 x 78 x 15 -> 7 x 3822
+fprintf("Dims of x received by modelKA_basisC: ")
+size(x)
 
-N = size(x,1);
+
+N = size(x,1)
 m = size(x,2);
 n = size(fnB,1);
 q = size(fnT,1);
-p = size(fnT,2);
+p = size(fnT,2)
+
+fprintf("N, m, n, q, p = %d %d %d %d %d \n", N, m, n, q, p)
 
 tmin = ymin;
 tmax = ymax;
@@ -18,15 +22,24 @@ Cpnm = kron(eye(p),ones(1,n*m));
 Mn = splineMatrix(n);
 Mq = splineMatrix(q);
 
-size(fnB)
 fnB_r = reshape(fnB,n*m,[]);
+
+fprintf("New dims of fnB: ")
+size(fnB_r)
+
 fnT_r = fnT(:);
+fprintf("Dims of fnT_r: ")
+size(fnT_r)
 
 %. calc. bottom
 xr = reshape(x.',1,N*m);
 [ phi, dphi, ddphi ] = basisFunc_spline( xr, xmin, xmax, n, Mn );
 phi_r = reshape(phi,n*m,N);
 t = phi_r.' * fnB_r;
+
+fprintf("Dims of t: ")
+size(t)
+
 
 %. calc. top
 tr = reshape(t.',1,N*p);

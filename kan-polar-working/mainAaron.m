@@ -15,7 +15,7 @@ session2Files = dir(fullfile(dataDir, 'Processed_data_received_*_S2.mat'));
 
 % Initialize storage for training data (Session 1)
 x_train = [];
-lab_train_2 = transpose(lab_train)
+lab_train_2 = transpose(lab_train);
 y_train = lab_train_2;  % Replace with actual labels if available
 
 % Load and combine all Session 1 data for training
@@ -73,10 +73,12 @@ ymax = max(y_train(:));
 % Debug print to confirm ymin and ymax are scalars
 disp(['ymin: ', num2str(ymin), ', ymax: ', num2str(ymax)]);
 
-m = size(x_train, 1) * size(x_train, 2); % Number of input features (7 * 78) = 546
+%fprintf("Number of input features: ")
+% m = size(x_train, 1) * size(x_train, 2); % Number of input features (7 * 78) = 546
+m = 10;
 n = 7;  % Number of nodes at the bottom
-q = 21;  % Number of nodes at the top
-p = 7;  % Number of bottom operators
+q = 2;  % Number of nodes at the top
+p = 2*m + 1;  % Number of bottom operators -> currently 2*m + 1
 
 % Print values of n, m, and p for verification
 fprintf('n: %d, m: %d, p: %d\n', n, m, p);
@@ -85,8 +87,11 @@ fprintf('n: %d, m: %d, p: %d\n', n, m, p);
 tic;
 [fnB0, fnT0] = buildKA_init(m, n, q, p, ymin, ymax);
 
+fprintf("Calculated fnB0 dims: ")
+size(fnB0)
+
 % Set batch size for training
-batchSize = 20;  % Adjust based on available memory and dataset size
+batchSize = 20;  % total no. of batches = 42
 numBatches = ceil(size(x_train, 3) / batchSize);
 
 % Initialize tracking variables for RMSE
@@ -105,8 +110,8 @@ labels_shuffled = lab_train_2(shuffled_indices);
 
 % Now x_train_shuffled is the shuffled data, and labels_shuffled has the correctly matched labels
 
-identID = 15;  % First 670 samples for training
-verifID = 16;  % Last 140 samples for validation
+identID = 15;  % In each batch (size 20), first 15 are for training
+verifID = 16;  % 16-20 are for validation (dw about it now)
 
 % Training loop with batch processing
 for run = 1:Nrun
@@ -115,7 +120,7 @@ for run = 1:Nrun
     for batchIdx = 1:numBatches
         % Get batch indices
         startIdx = (batchIdx - 1) * batchSize + 1;
-        endIdx = min(batchIdx * batchSize, size(x_train_shuffled, 3));
+        endIdx = min(batchIdx * batchSize, size(x_train_shuffled, 3))
         
         % Extract mini-batch data
         x_batch = x_train_shuffled(:, :, startIdx:endIdx);
@@ -124,7 +129,7 @@ for run = 1:Nrun
         
         fprintf("Dims. of input matrix: ")
         size(x_batch)
-        
+
         % Train on mini-batch
         [yhat_batch, fnB, fnT, RMSE_batch, t_min_batch, t_max_batch] = solveMinGauss(x_batch, y_batch, lab_batch, identID, verifID, alp, lam, 1, xmin, xmax, ymin, ymax, fnB0, fnT0);
         

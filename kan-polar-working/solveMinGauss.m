@@ -1,6 +1,6 @@
 function [ yhat_all, fnB, fnT, RMSE, t_min_all, t_max_all ] = solveMinGauss( x, y, lab, identID, verifID, alp, lam, Nrun, xmin, xmax, ymin, ymax, fnB0, fnT0 )
 
-size(x)
+% size(x)
 
 m = size(x, 1) * size(x, 2);
 
@@ -14,18 +14,24 @@ RMSE = zeros(Nrun,1);
 t_min_all = zeros(Nrun,p);
 t_max_all = zeros(Nrun,p);
 
-size(x, 3)
+% size(x, 3)
 
 for jj=1:Nrun
     
     indI = 1:identID;
-    indV = verifID:size(x, 3)
+    indV = verifID:size(x, 3);
 
 
     %. training
-    for i = i:size(x,3) 
+    for i = 1:size(x,3) 
+        
+        % fprintf("Current indI: %d \n", indI)
 
-        x_step = x(:,:, indI)
+        x_step = x(:,:, i);
+
+        fprintf("Dims of current x_step: ")
+        size(x_step)
+
         fprintf("Dims of matrix passed to modelKA_basisC: ")
         size(x_step)
 

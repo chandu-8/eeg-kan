@@ -1,6 +1,4 @@
 function [ val, dval, ddval, dddval ] = basisFunc_spline( xx, xmin, xmax, n, M )
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
 
 %. xx must be a row
 tt = (n-1)*(xx-xmin)/(xmax-xmin);
