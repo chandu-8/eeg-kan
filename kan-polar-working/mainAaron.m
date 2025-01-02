@@ -15,8 +15,6 @@ session2Files = dir(fullfile(dataDir, 'Processed_data_received_*_S2.mat'));
 
 % Initialize storage for training data (Session 1)
 x_train = [];
-lab_train_2 = transpose(lab_train);
-y_train = lab_train_2;  % Replace with actual labels if available
 
 % Load and combine all Session 1 data for training
 for i = 1:length(session1Files)
@@ -33,11 +31,23 @@ for i = 1:length(session1Files)
   end
 
 
-
     % Replace the random placeholder with actual labels if available
     % Example: Use real EEG labels or calculated features
     % y_train = [y_train; session1Data.labels];  % Uncomment and use if labels are provided
 end
+
+x_values = 1:78;
+
+x_y_train = zeros(2, 78, 7, 840);
+
+x_y_train(1,:,:,:) = repmat(reshape(x_values, [1, 78, 1, 1]), [1, 1, 7, 840]);
+
+fprintf("Dims of x_y_train: ")
+size(x_y_train)
+
+x_y_train(2, :, :, :) = permute(x_train, [2, 1, 3]);
+
+x_y_train(:,:,:,1)
 
 % Normalize x_train to the range [0, 1]
 %x_train = (x_train - min(x_train(:))) / (max(x_train(:)) - min(x_train(:)));
@@ -56,6 +66,9 @@ end
 lab_train_2=transpose(lab_train);
 
 save('data_label.mat', "lab_train","x_train");
+
+lab_train_2 = transpose(lab_train);
+y_train = lab_train_2;  % Replace with actual labels if available
 
 
 % Set numerical parameters and limits
@@ -77,8 +90,8 @@ disp(['ymin: ', num2str(ymin), ', ymax: ', num2str(ymax)]);
 % m = size(x_train, 1) * size(x_train, 2); % Number of input features (7 * 78) = 546
 m = 10;
 n = 7;  % Number of nodes at the bottom
-q = 2;  % Number of nodes at the top
-p = 2*m + 1;  % Number of bottom operators -> currently 2*m + 1
+q = 21;  % Number of nodes at the top
+p = 2;  % Number of bottom operators -> classically 2*m + 1
 
 % Print values of n, m, and p for verification
 fprintf('n: %d, m: %d, p: %d\n', n, m, p);
@@ -90,58 +103,76 @@ tic;
 fprintf("Calculated fnB0 dims: ")
 size(fnB0)
 
-% Set batch size for training
-batchSize = 20;  % total no. of batches = 42
-numBatches = ceil(size(x_train, 3) / batchSize);
+% % Set batch size for training
+% batchSize = 20;  % total no. of batches = 42
+% numBatches = ceil(size(x_train, 3) / batchSize);
 
 % Initialize tracking variables for RMSE
 RMSE_train = zeros(Nrun, 1);
 t_min_all_train = zeros(Nrun, p);
 t_max_all_train = zeros(Nrun, p);
 
-% Generate a random permutation of the indices
-shuffled_indices = randperm(840);
+%------------------------------------------------------------------------------------------------------------------------------------------------
 
-% Shuffle the data (7x78x840 matrix)
-x_train_shuffled = x_train(:, :, shuffled_indices);
+% % Generate a random permutation of the indices
+% shuffled_indices = randperm(840);
+% 
+% % Shuffle the data (7x78x840 matrix)
+% x_train_shuffled = x_train(:, :, shuffled_indices);
+% 
+% % Shuffle the labels vector
+% labels_shuffled = lab_train_2(shuffled_indices);
+% 
+% % Now x_train_shuffled is the shuffled data, and labels_shuffled has the correctly matched labels
+% 
+% identID = 15;  % In each batch (size 20), first 15 are for training
+% verifID = 16;  % 16-20 are for validation (dw about it now)
+% 
+% % Training loop with batch processing
+% for run = 1:Nrun
+%     disp(['Training iteration ', num2str(run), ' of ', num2str(Nrun)]);
+% 
+%     for batchIdx = 1:numBatches
+%         % Get batch indices
+%         startIdx = (batchIdx - 1) * batchSize + 1;
+%         endIdx = min(batchIdx * batchSize, size(x_train_shuffled, 3))
+% 
+%         % Extract mini-batch data
+%         x_batch = x_train_shuffled(:, :, startIdx:endIdx);
+%         y_batch = labels_shuffled(:, startIdx:endIdx);
+%         lab_batch = labels_shuffled(:, startIdx:endIdx);
+% 
+%         fprintf("Dims. of input matrix: ")
+%         size(x_batch)
+% 
+%         % Train on mini-batch
+%         [yhat_batch, fnB, fnT, RMSE_batch, t_min_batch, t_max_batch] = solveMinGauss(x_batch, y_batch, lab_batch, identID, verifID, alp, lam, 1, xmin, xmax, ymin, ymax, fnB0, fnT0);
+% 
+%         % Aggregate results (optional: store or average batch results)
+%         RMSE_train(run) = mean(RMSE_batch);
+%         t_min_all_train(run, :) = min(t_min_batch);
+%         t_max_all_train(run, :) = max(t_max_batch);
+%     end
+% 
+%     % Display iteration progress
+%     fprintf('Iteration %d completed. RMSE: %f\n', run, RMSE_train(run));
+% end
 
-% Shuffle the labels vector
-labels_shuffled = lab_train_2(shuffled_indices);
+%------------------------------------------------------------------------------------------------------------------------------------------------
 
-% Now x_train_shuffled is the shuffled data, and labels_shuffled has the correctly matched labels
 
-identID = 15;  % In each batch (size 20), first 15 are for training
-verifID = 16;  % 16-20 are for validation (dw about it now)
+% Deal with identID and verifID here:
 
-% Training loop with batch processing
-for run = 1:Nrun
-    disp(['Training iteration ', num2str(run), ' of ', num2str(Nrun)]);
-    
-    for batchIdx = 1:numBatches
-        % Get batch indices
-        startIdx = (batchIdx - 1) * batchSize + 1;
-        endIdx = min(batchIdx * batchSize, size(x_train_shuffled, 3))
-        
-        % Extract mini-batch data
-        x_batch = x_train_shuffled(:, :, startIdx:endIdx);
-        y_batch = labels_shuffled(:, startIdx:endIdx);
-        lab_batch = labels_shuffled(:, startIdx:endIdx);
-        
-        fprintf("Dims. of input matrix: ")
-        size(x_batch)
+% TODO 
 
-        % Train on mini-batch
-        [yhat_batch, fnB, fnT, RMSE_batch, t_min_batch, t_max_batch] = solveMinGauss(x_batch, y_batch, lab_batch, identID, verifID, alp, lam, 1, xmin, xmax, ymin, ymax, fnB0, fnT0);
-        
-        % Aggregate results (optional: store or average batch results)
-        RMSE_train(run) = mean(RMSE_batch);
-        t_min_all_train(run, :) = min(t_min_batch);
-        t_max_all_train(run, :) = max(t_max_batch);
-    end
-    
-    % Display iteration progress
-    fprintf('Iteration %d completed. RMSE: %f\n', run, RMSE_train(run));
-end
+lab = ones(840, 1);
+lab(701:end) = 2;
+
+identID = 700;
+verifID = 701;
+
+[ yhat_all, fnB, fnT, RMSE, t_min_all, t_max_all ] = solveMinGauss( x_y_train, lab_train, lab, identID, verifID, alp, lam, Nrun, xmin, xmax, ymin, ymax, fnB0, fnT0 );
+
 
 toc;
 disp('Training complete.');
