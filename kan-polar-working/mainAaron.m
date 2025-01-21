@@ -15,20 +15,26 @@ session2Files = dir(fullfile(dataDir, 'Processed_data_received_*_S2.mat'));
 
 % Initialize storage for training data (Session 1)
 x_train = [];
+x_test = [];
 
 % Load and combine all Session 1 data for training
 for i = 1:length(session1Files)
     session1File = session1Files(i).name;
     session1Data = load(fullfile(dataDir, session1File));
+
+    session2File = session2Files(i).name;
+    session2Data = load(fullfile(dataDir, session2File));
     
     % Reshape the 3D matrix into a 2D matrix with samples as rows
-  %  reshapedData = reshape(session1Data.Template_1, size(session1Data.Template_1, 1), []);
-  %  x_train = [x_train; reshapedData];  % Concatenate data from each file
-  if i==1
-  x_train=cell2mat(struct2cell(session1Data));
-  else
-  x_train=cat(3,x_train,cell2mat(struct2cell(session1Data)));
-  end
+    %  reshapedData = reshape(session1Data.Template_1, size(session1Data.Template_1, 1), []);
+    %  x_train = [x_train; reshapedData];  % Concatenate data from each file
+    if i==1
+    x_train = cell2mat(struct2cell(session1Data));
+    x_test = cell2mat(struct2cell(session2Data));
+    else
+    x_train = cat(3,x_train,cell2mat(struct2cell(session1Data)));
+    x_test = cat(3,x_test,cell2mat(struct2cell(session2Data)));
+    end
 
 
     % Replace the random placeholder with actual labels if available
@@ -196,6 +202,7 @@ for i = 1:length(session2Files)
 
     % Replace with actual test labels if available
     % y_test = [y_test; session2Data.labels];  % Uncomment and use if labels are provided
+    end
 end
 
 % Normalize x_test using the same scaling as x_train
