@@ -41,19 +41,7 @@ for i = 1:length(session1Files)
     % Example: Use real EEG labels or calculated features
     % y_train = [y_train; session1Data.labels];  % Uncomment and use if labels are provided
 end
-
-x_values = 1:78;
-
-x_y_train = zeros(2, 78, 7, 840);
-
-x_y_train(1,:,:,:) = repmat(reshape(x_values, [1, 78, 1, 1]), [1, 1, 7, 840]);
-
-fprintf("Dims of x_y_train: ")
-size(x_y_train)
-
-x_y_train(2, :, :, :) = permute(x_train, [2, 1, 3]);
-
-x_y_train(:,:,:,1)
+%% 
 
 % Normalize x_train to the range [0, 1]
 %x_train = (x_train - min(x_train(:))) / (max(x_train(:)) - min(x_train(:)));

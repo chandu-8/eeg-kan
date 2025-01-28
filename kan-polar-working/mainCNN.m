@@ -1,7 +1,7 @@
 %% Create labels vector
 
 k=1;
-for j=1:21
+for j=1:18
     for i=1:40
         lab_train(k,1) = j ;
         lab_test(k,1) = j ;
@@ -55,7 +55,7 @@ YVal = [];
 XTest = x_test;
 YTest = labels_test;
 
-[XTrain, YTrain, XVal, YVal] = splitOrderedData(x_train, labels, 0.8, 21);
+[XTrain, YTrain, XVal, YVal] = splitOrderedData(x_train, labels, 0.8, 18);
 
 shuffled_indices = randperm(size(XTrain, 3));
 XTrain = XTrain(:, :, shuffled_indices);
@@ -83,38 +83,38 @@ disp(size(YTest));
 layers = [
     imageInputLayer([size(XTrain, 1), size(XTrain, 2), 1], 'Name', 'input')
     
-    convolution2dLayer([3, 3], 78, 'Padding', 'same', 'Name', 'conv1')
+    convolution2dLayer([3, 3], 78, 'Padding', 1, 'Stride',[1 1], 'Name', 'conv1')
     batchNormalizationLayer('Name', 'bn1')
     reluLayer('Name', 'relu1')
 
-    convolution2dLayer([3, 3], 156, 'Padding', 'same', 'Name', 'conv2')
-    batchNormalizationLayer('Name', 'bn1')
+    convolution2dLayer([3, 3], 156, 'Padding', 1, 'Stride',[1 1], 'Name', 'conv2')
+    batchNormalizationLayer('Name', 'bn2')
     reluLayer('Name', 'relu2')
 
 
     maxPooling2dLayer([2, 2], 'Stride', 2, 'Name', 'maxpool1')
     
-    convolution2dLayer([1, 11], 256, 'Padding', 'same', 'Name', 'conv3')
-    batchNormalizationLayer('Name', 'bn2')
+    convolution2dLayer([3, 3], 312, 'Padding', 1, 'Stride',[1 1], 'Name', 'conv3')
+    batchNormalizationLayer('Name', 'bn3')
     reluLayer('Name', 'relu3')
-    convolution2dLayer([1, 11], 256, 'Padding', 'same', 'Name', 'conv4')
-    batchNormalizationLayer('Name', 'bn2')
+    convolution2dLayer([3, 3], 624, 'Padding', 1, 'Stride',[1 1], 'Name', 'conv4')
+    batchNormalizationLayer('Name', 'bn4')
     reluLayer('Name', 'relu4')
     
-    maxPooling2dLayer([1, 2], 'Stride',[1,2], 'Name', 'maxpool2')
+    maxPooling2dLayer([2, 2], 'Stride',2, 'Name', 'maxpool2')
 
 
-    convolution2dLayer([1, 5], 512, 'Padding', 'same', 'Name', 'conv5')
-    batchNormalizationLayer('Name', 'bn3')
+    convolution2dLayer([1, 18], 1024, 'Padding', 'same', 'Name', 'conv5')
+    batchNormalizationLayer('Name', 'bn5')
     reluLayer('Name', 'relu5')
-    convolution2dLayer([1, 5], 1024, 'Padding', 'same', 'Name', 'conv6')
-    batchNormalizationLayer('Name', 'bn3')
-    reluLayer('Name', 'relu6')
+    % convolution2dLayer([1, 5], 1024, 'Padding','same', 'Name', 'conv6')
+    % batchNormalizationLayer('Name', 'bn6')
+    % reluLayer('Name', 'relu6')
 
     
-    fullyConnectedLayer(1024, 'Name', 'fc1')
+    fullyConnectedLayer(2048, 'Name', 'fc1')
     reluLayer('Name', 'relu6')
-    fullyConnectedLayer(2048, "Name", 'fc2')
+    fullyConnectedLayer(4096, "Name", 'fc2')
     reluLayer("Name", 'relu7')
 
     
@@ -125,7 +125,7 @@ layers = [
     softmaxLayer('Name', 'softmax')
 ];
 
-options = trainingOptions('sgdm', ...
+options = trainingOptions('adam', ...
     'InitialLearnRate', 0.000001, ...
     'MaxEpochs', 100, ...
     'MiniBatchSize', 5, ...
