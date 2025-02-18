@@ -9,10 +9,10 @@ for j=1:18
     end
 end
 
-% labels = transpose(lab_train);
 labels = lab_train;
-% labels_test = transpose(lab_test);
 labels_test = lab_test;
+%% 
+print_high_psd_slices(x_train)
 
 %% Data Engineering
 
@@ -87,41 +87,44 @@ layers = [
     batchNormalizationLayer('Name', 'bn1')
     reluLayer('Name', 'relu1')
 
-    convolution2dLayer([3, 3], 156, 'Padding', 1, 'Stride',[1 1], 'Name', 'conv2')
+    convolution2dLayer([3, 3], 128, 'Padding', 1, 'Stride',[1 1], 'Name', 'conv2')
     batchNormalizationLayer('Name', 'bn2')
     reluLayer('Name', 'relu2')
 
 
     maxPooling2dLayer([2, 2], 'Stride', 2, 'Name', 'maxpool1')
     
-    convolution2dLayer([3, 3], 312, 'Padding', 1, 'Stride',[1 1], 'Name', 'conv3')
+    convolution2dLayer([3, 3], 256, 'Padding', 1, 'Stride',[1 1], 'Name', 'conv3')
     batchNormalizationLayer('Name', 'bn3')
     reluLayer('Name', 'relu3')
-    convolution2dLayer([3, 3], 624, 'Padding', 1, 'Stride',[1 1], 'Name', 'conv4')
+    convolution2dLayer([3, 3], 256, 'Padding', 1, 'Stride',[1 1], 'Name', 'conv4')
     batchNormalizationLayer('Name', 'bn4')
     reluLayer('Name', 'relu4')
     
     maxPooling2dLayer([2, 2], 'Stride',2, 'Name', 'maxpool2')
 
 
-    convolution2dLayer([1, 18], 1024, 'Padding', 'same', 'Name', 'conv5')
+    convolution2dLayer([3, 3], 512, 'Padding',  1, 'Stride',[1 1], 'Name', 'conv5')
     batchNormalizationLayer('Name', 'bn5')
     reluLayer('Name', 'relu5')
-    % convolution2dLayer([1, 5], 1024, 'Padding','same', 'Name', 'conv6')
-    % batchNormalizationLayer('Name', 'bn6')
-    % reluLayer('Name', 'relu6')
-
-    
-    fullyConnectedLayer(2048, 'Name', 'fc1')
+    convolution2dLayer([3, 3], 512, 'Padding', 1, 'Stride',[1 1], 'Name', 'conv6')
+    batchNormalizationLayer('Name', 'bn6')
     reluLayer('Name', 'relu6')
-    fullyConnectedLayer(4096, "Name", 'fc2')
-    reluLayer("Name", 'relu7')
+
+    maxPooling2dLayer([2, 2], 'Stride',2, 'Name', 'maxpool3')
+
+    convolution2dLayer([1, 9], 768, 'Padding', 'same', 'Name', 'conv7')
+    batchNormalizationLayer('Name', 'bn7')
+    reluLayer('Name', 'relu7')
+
+    fullyConnectedLayer(1024, 'Name', 'fc1')
+    reluLayer('Name', 'relu8')
 
     
     dropoutLayer(0.15)
 
     
-    fullyConnectedLayer(numel(unique(labels)), 'Name', 'fc3')
+    fullyConnectedLayer(numel(unique(labels)), 'Name', 'fc2')
     softmaxLayer('Name', 'softmax')
 ];
 
